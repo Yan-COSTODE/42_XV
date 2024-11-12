@@ -31,12 +31,19 @@ public class UIMouseOverScale : MonoBehaviour, IPointerEnterHandler, IPointerExi
             OnPointerExit(null);
     }
 
+    public void SetDuration(float _duration) => fDuration = _duration;
+    
     public void Reset()
     {
         if (!rectTransform)
             return;
         
         rectTransform.localScale = originalScale;
+    }
+
+    public void ManualScale(Vector3 _from, Vector3 _to, float _duration, EEasing _easing)
+    {
+        StartCoroutine(Tween(_from, _to, _duration, _easing));
     }
     
     public void OnPointerEnter(PointerEventData _eventData)
