@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class Model : MonoBehaviour
 {
@@ -28,6 +29,11 @@ public class Model : MonoBehaviour
 
     private void OnMouseDown()
     {
+        if (EventSystem.current.IsPointerOverGameObject())
+            return;
+        
         UIManager.Instance.CircleUI.Open(this);
     }
+    
+    public void Rename(string _name) => modelName = _name;
 }

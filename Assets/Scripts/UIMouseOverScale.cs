@@ -19,7 +19,7 @@ public class UIMouseOverScale : MonoBehaviour, IPointerEnterHandler, IPointerExi
     private void Start()
     {
         rectTransform = gameObject.GetComponent<RectTransform>();
-        originalScale = transform.localScale;
+        originalScale = Vector3.one;
     }
 
     private void Update()
@@ -43,7 +43,11 @@ public class UIMouseOverScale : MonoBehaviour, IPointerEnterHandler, IPointerExi
 
     public void ManualScale(Vector3 _from, Vector3 _to, float _duration, EEasing _easing)
     {
-        StartCoroutine(Tween(_from, _to, _duration, _easing));
+        rectTransform = gameObject.GetComponent<RectTransform>();
+        originalScale = _to;
+        
+        if (rectTransform)
+            rectTransform.TweenScale(_from, _to, _duration, _easing);
     }
     
     public void OnPointerEnter(PointerEventData _eventData)
@@ -55,7 +59,7 @@ public class UIMouseOverScale : MonoBehaviour, IPointerEnterHandler, IPointerExi
             if (!_button.interactable)
                 return;
         
-        StartCoroutine(Tween(originalScale, originalScale * fScale, fDuration, easingUp));
+        rectTransform.TweenScale(originalScale, originalScale * fScale, fDuration, easingUp, () => bIsTweening = false);
         bIsScaledUp = true;
     }
 
@@ -69,7 +73,8 @@ public class UIMouseOverScale : MonoBehaviour, IPointerEnterHandler, IPointerExi
                 return;
         
         bIsScaledUp = false;
-        StartCoroutine(Tween(originalScale * fScale, originalScale, fDuration, easingDown));
+        bIsTweening = true;
+        rectTransform.TweenScale(originalScale * fScale, originalScale, fDuration, easingDown, () => bIsTweening = false);
     }
 
     public void SetActive(bool _status) => bIsActive = _status;
@@ -78,25 +83,6 @@ public class UIMouseOverScale : MonoBehaviour, IPointerEnterHandler, IPointerExi
     {
         Vector2 _pos = rectTransform.InverseTransformPoint(Input.mousePosition);
         return rectTransform.rect.Contains(_pos);
-    }
-    
-    private IEnumerator Tween(Vector3 _start, Vector3 _end, float _time, EEasing _easing)
-    {
-        if (!rectTransform)
-            yield break;
-        
-        bIsTweening = true;
-        float _startTime = Time.unscaledTime;
-
-        while (Time.unscaledTime - _startTime < _time)
-        {
-            float _ease = Easing.Ease((Time.unscaledTime - _startTime) / _time, _easing);
-            rectTransform.localScale = Vector3.Lerp(_start, _end, _ease);
-            yield return null;
-        }
-        
-        rectTransform.localScale = _end;
-        bIsTweening = false;
     }
     #endregion
 }
