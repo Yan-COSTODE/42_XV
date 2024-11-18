@@ -16,6 +16,9 @@ public static class UITween
 
         while (_startTime < _time)
         {
+            if (!_rectTransform)
+                yield break;
+            
             float _ease = Easing.Ease(_startTime / _time, _easing);
             _rectTransform.localScale = Vector3.Lerp(_start, _end, _ease);
             _startTime += Time.deltaTime;
@@ -38,6 +41,9 @@ public static class UITween
         
         while (_startTime < _time)
         {
+            if (!_rectTransform)
+                yield break;
+            
             float _ease = Easing.Ease(_startTime / _time, _easing);
             _rectTransform.position = Vector3.Lerp(_start, _end, _ease);
             _startTime += Time.deltaTime;

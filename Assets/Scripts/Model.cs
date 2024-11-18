@@ -34,6 +34,10 @@ public class Model : MonoBehaviour
         
         UIManager.Instance.CircleUI.Open(this);
     }
-    
-    public void Rename(string _name) => modelName = _name;
+
+    public void Rename(string _name)
+    {
+        modelName = _name;
+        name = _name;
+    }
 }

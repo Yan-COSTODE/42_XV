@@ -2,35 +2,48 @@ using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
+
+// TODO Move, Rotate, Carry, CarryDrive, Drive
 
 public class CircleUI : MonoBehaviour
 {
     [SerializeField] private GameObject circlePrefab;
     [SerializeField, Range(0, 500)] private float fRadius = 100.0f;
     [SerializeField, Range(1.0f, 2.0f)] private float fOvalMultiplier = 1.2f;
-    [SerializeField] private GameObject inputPrefab;
     [SerializeField] private UIColorPicker colorPickerPrefab;
+    [SerializeField] private UINamePicker namePickerPrefab;
     private float fScaleDuration = 0.2f;
     private float fWaitDuration = 0.1f;
     private bool bOpened = false;
     private Model model;
     private Vector2 mouse;
-    private GameObject menu;
+    private Coroutine closingCoroutine = null;
 
     private void Update()
     {
-        if (!bOpened && !menu)
+        if (!bOpened)
+            return;
+
+        if (!Input.GetMouseButtonDown(0))
             return;
         
-        if (Input.GetMouseButtonDown(0))
-            StartCoroutine(Close());
+        if (EventSystem.current.IsPointerOverGameObject())
+            return;
+
+        Close();
     }
 
     public void Open(Model _model)
     {
-        ClearTransform();
+        bOpened = false;
+        
+        if (closingCoroutine != null)
+            FastClose();
+        else
+            ClearTransform();
         
         model = _model;
         int _count = 5;
@@ -102,15 +115,26 @@ public class CircleUI : MonoBehaviour
         SetChildStatus(_index, true);
         yield return new WaitForSeconds(fWaitDuration);
     }
+
+    private void Close()
+    {
+        closingCoroutine = StartCoroutine(CloseCoroutine());
+    }
+
+    private void FastClose()
+    {
+        bOpened = false;
+        StopCoroutine(closingCoroutine);
+        closingCoroutine = null;
+        ClearTransform();
+        model = null;
+    }
     
-    private IEnumerator Close()
+    private IEnumerator CloseCoroutine()
     {
         bOpened = false;
         
         yield return new WaitForSeconds(fWaitDuration);
-        
-        if (transform.childCount == 0)
-            yield return CloseMenu();
         
         for (int i = 1; i < transform.childCount; i++)
             yield return CloseChild(transform.childCount - 1);
@@ -120,6 +144,7 @@ public class CircleUI : MonoBehaviour
         
         ClearTransform();
         model = null;
+        closingCoroutine = null;
     }
 
     private IEnumerator CloseChild(int _index)
@@ -128,21 +153,6 @@ public class CircleUI : MonoBehaviour
         _circle.GetComponent<RectTransform>().TweenPosition(_circle.transform.position, mouse, fScaleDuration, EEasing.EASE_IN_QUAD);
         _circle.GetComponent<UIMouseOverScale>().ManualScale(Vector3.one, Vector3.zero, fScaleDuration, EEasing.EASE_IN_QUAD);
         Destroy(_circle, fWaitDuration);
-        yield return new WaitForSeconds(fWaitDuration);
-    }
-
-    private IEnumerator CloseMenu()
-    {
-        if (!menu)
-            yield break;
-        
-        menu.GetComponent<RectTransform>().TweenPosition(menu.transform.position, mouse, fScaleDuration, EEasing.EASE_IN_QUAD);
-        
-        if (menu.TryGetComponent(out UIMouseOverScale _childScale))
-            _childScale.ManualScale(Vector3.one, Vector3.zero, fScaleDuration, EEasing.EASE_IN_QUAD);
-        
-        Destroy(menu, fWaitDuration);
-        menu = null;
         yield return new WaitForSeconds(fWaitDuration);
     }
     
@@ -154,29 +164,34 @@ public class CircleUI : MonoBehaviour
 
     private void Rename()
     {
-        model.Rename(Random.Range(-1000, 1000).ToString());
+        Close();
+        UINamePicker _namePicker = Instantiate(namePickerPrefab, mouse, Quaternion.identity, transform.parent);
+        _namePicker.Setup(model);
     }
 
     private void Move()
     {
+        Close();
         model.transform.position += Vector3.right;
     }
 
     private void Rotate()
     {
+        Close();
         model.transform.rotation *= Quaternion.Euler(Vector3.up * Random.Range(-360, 360));
     }
 
     private void Destroy()
     {
+        Close();
         Destroy(model.gameObject);
     }
 
     private void Colorize()
     {
+        Close();
         UIColorPicker _colorPicker = Instantiate(colorPickerPrefab, mouse, Quaternion.identity, transform.parent);
         _colorPicker.Setup(model.gameObject);
-        menu = _colorPicker.gameObject;
     }
 
     private void Carry()
