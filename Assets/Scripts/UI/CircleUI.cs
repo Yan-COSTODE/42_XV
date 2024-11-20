@@ -3,6 +3,7 @@ using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
@@ -15,14 +16,30 @@ public class CircleUI : MonoBehaviour
     [SerializeField, Range(1.0f, 2.0f)] private float fOvalMultiplier = 1.2f;
     [SerializeField] private UIColorPicker colorPickerPrefab;
     [SerializeField] private UINamePicker namePickerPrefab;
+    [Header("Distance Scaling")]
+    [SerializeField] private float fMinDistance = 0.5f;
+    [SerializeField] private float fMaxDistance = 20.0f;
+    [SerializeField] private float fMinScale = 0.2f;
     private float fScaleDuration = 0.2f;
     private float fWaitDuration = 0.1f;
     private bool bOpened = false;
     private Model model;
     private Vector2 mouse;
     private Coroutine closingCoroutine = null;
+    private float fRotationSpeed = 150.0f;
+    private bool bIsMoving = false;
+    private bool bIsRotating = false;
+    
+    private float Radius => fRadius * transform.localScale.x;
 
     private void Update()
+    {
+        UpdateMove();
+        UpdateRotate();
+        UpdateClose();
+    }
+
+    private void UpdateClose()
     {
         if (!bOpened)
             return;
@@ -36,8 +53,42 @@ public class CircleUI : MonoBehaviour
         Close();
     }
 
+    private void UpdateMove()
+    {
+        if (bIsMoving && Input.GetMouseButtonDown(0))
+        {
+            if (model.TryGetComponent(out Collider _collider))
+                _collider.enabled = true;
+            
+            bIsMoving = false;
+        }
+
+        if (!bIsMoving)
+            return;
+        
+        Ray _ray = CameraManager.Instance.Main.ScreenPointToRay(Input.mousePosition);
+        
+        if (Physics.Raycast(_ray, out RaycastHit _hit))
+            model.transform.position = _hit.point;
+    }
+
+    private void UpdateRotate()
+    {
+        if (bIsRotating && Input.GetMouseButtonDown(0))
+            bIsRotating = false;
+        
+        if (!bIsRotating)
+            return;
+        
+        float _mouseX = Input.GetAxis("Mouse X");
+        model.transform.Rotate(Vector3.up, - _mouseX * fRotationSpeed * Time.deltaTime, Space.World);
+    }
+    
     public void Open(Model _model)
     {
+        if (bIsMoving || bIsRotating)
+            return;
+        
         bOpened = false;
         
         if (closingCoroutine != null)
@@ -45,7 +96,7 @@ public class CircleUI : MonoBehaviour
         else
             ClearTransform();
         
-        model = _model;
+        ChangeModel(_model);
         int _count = 5;
         
         if (_model.Carryable)
@@ -55,9 +106,18 @@ public class CircleUI : MonoBehaviour
         if (_model.Drivable)
             _count++;
         
+        SetSize();
         StartCoroutine(Setup(_count));
     }
 
+    private void SetSize()
+    {
+        float _distance = Vector3.Distance(CameraManager.Instance.Main.transform.position, model.transform.position);
+        float _clampedDistance = Mathf.Clamp(_distance, fMinDistance, fMaxDistance);
+        float _time = _clampedDistance / fMaxDistance;
+        transform.localScale = Vector3.Lerp(Vector3.one, Vector3.one * fMinScale, _time);
+    }
+    
     private IEnumerator Setup(int _circleCount)
     {
         float _angleStep = 360.0f / _circleCount;
@@ -70,7 +130,7 @@ public class CircleUI : MonoBehaviour
         {
             float _angle = _angleStep * -i + 45;
             float _angleRad = _angle * Mathf.Deg2Rad;
-            Vector2 _position = new Vector2(Mathf.Cos(_angleRad) * fRadius * fOvalMultiplier, Mathf.Sin(_angleRad) * fRadius);
+            Vector2 _position = new Vector2(Mathf.Cos(_angleRad) * Radius * fOvalMultiplier, Mathf.Sin(_angleRad) * Radius);
 
             switch (i)
             {
@@ -127,7 +187,6 @@ public class CircleUI : MonoBehaviour
         StopCoroutine(closingCoroutine);
         closingCoroutine = null;
         ClearTransform();
-        model = null;
     }
     
     private IEnumerator CloseCoroutine()
@@ -143,7 +202,6 @@ public class CircleUI : MonoBehaviour
             yield return CloseChild(0);
         
         ClearTransform();
-        model = null;
         closingCoroutine = null;
     }
 
@@ -162,6 +220,14 @@ public class CircleUI : MonoBehaviour
             Destroy(transform.GetChild(i).gameObject);
     }
 
+    private void ChangeModel(Model _model)
+    {
+        if (model && model.TryGetComponent(out Collider _collider))
+            _collider.enabled = true;
+        
+        model = _model;
+    }
+    
     private void Rename()
     {
         Close();
@@ -172,13 +238,19 @@ public class CircleUI : MonoBehaviour
     private void Move()
     {
         Close();
-        model.transform.position += Vector3.right;
+        Mouse.current.WarpCursorPosition(GetModelMousePosition());
+        
+        if (model.TryGetComponent(out Collider _collider))
+            _collider.enabled = false;
+        
+        bIsMoving = true;
     }
-
+    
     private void Rotate()
     {
         Close();
-        model.transform.rotation *= Quaternion.Euler(Vector3.up * Random.Range(-360, 360));
+        Mouse.current.WarpCursorPosition(GetModelMousePosition());
+        bIsRotating = true;
     }
 
     private void Destroy()
@@ -207,5 +279,10 @@ public class CircleUI : MonoBehaviour
     private void Drive()
     {
         
+    }
+
+    private Vector3 GetModelMousePosition()
+    {
+        return CameraManager.Instance.Main.WorldToScreenPoint(model.transform.position);
     }
 }

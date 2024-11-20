@@ -29,6 +29,9 @@ public class Model : MonoBehaviour
 
     private void OnMouseDown()
     {
+        if (Cursor.visible == false)
+            return;
+        
         if (EventSystem.current.IsPointerOverGameObject())
             return;
         
