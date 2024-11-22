@@ -2399,6 +2399,8 @@ GameObject:
   m_Component:
   - component: {fileID: 5014828801437015692}
   - component: {fileID: 908448624385422491}
+  - component: {fileID: 2822273598204726525}
+  - component: {fileID: 7641409954195489541}
   m_Layer: 0
   m_Name: Character
   m_TagString: Untagged
@@ -2452,6 +2454,50 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &2822273598204726525
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7145262737676237284}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a0b44e1aff59f2ffa2131f21d63f657, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  modelName: Character
+  sprite: {fileID: 0}
+  bCharacter: 1
+  bCarryable: 0
+  carryPoint: {fileID: 0}
+  bCarryableDrive: 0
+  carryDrivePoint: {fileID: 0}
+  bDrivable: 0
+  drivePoint: {fileID: 0}
+--- !u!136 &7641409954195489541
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7145262737676237284}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.15870395
+  m_Height: 1.7848732
+  m_Direction: 1
+  m_Center: {x: -0.0040607154, y: 0.89178765, z: 0.015136749}
 --- !u!1 &7148632312886897257
 GameObject:
   m_ObjectHideFlags: 0

@@ -97,7 +97,7 @@ public class CircleUI : MonoBehaviour
             ClearTransform();
         
         ChangeModel(_model);
-        int _count = 5;
+        int _count = model.Character ? 4 : 5;
         
         if (_model.Carryable)
             _count++;
@@ -134,15 +134,15 @@ public class CircleUI : MonoBehaviour
 
             switch (i)
             {
-                case 0: yield return SetupChild(i + 1, mouse, _position + mouse, "Rename", Rename); 
+                case 0: yield return SetupChild(i + 1, mouse, _position + mouse, "Rename", Rename);
                     break;
-                case 1: yield return SetupChild(i + 1, mouse, _position + mouse, "Move", Move); 
+                case 1: yield return SetupChild(i + 1, mouse, _position + mouse, "Move", Move);
                     break;
-                case 2: yield return SetupChild(i + 1, mouse, _position + mouse, "Rotate", Rotate); 
+                case 2: yield return SetupChild(i + 1, mouse, _position + mouse, "Rotate", Rotate);
                     break;
-                case 3: yield return SetupChild(i + 1, mouse, _position + mouse, "Destroy", Destroy); 
+                case 3: yield return SetupChild(i + 1, mouse, _position + mouse, "Colorize", Colorize);
                     break;
-                case 4: yield return SetupChild(i + 1, mouse, _position + mouse, "Colorize", Colorize); 
+                case 4: yield return SetupChild(i + 1, mouse, _position + mouse, "Destroy", Destroy);
                     break;
             }
         }
@@ -172,7 +172,7 @@ public class CircleUI : MonoBehaviour
         _button.onClick.AddListener(() => _onClicked?.Invoke());
         UIMouseOverScale _childScale = _child.AddComponent<UIMouseOverScale>();
         _childScale.ManualScale(Vector3.zero, Vector3.one, fScaleDuration, EEasing.EASE_OUT_QUAD);
-        SetChildStatus(_index, true);
+        SetChildStatus(_index, !(model.Timeline && _index <= 4));
         yield return new WaitForSeconds(fWaitDuration);
     }
 
